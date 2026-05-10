@@ -1,4 +1,5 @@
-from typing import TypedDict, List, Dict
+from typing import Dict, List, TypedDict
+
 
 class Issue(TypedDict):
     description: str
@@ -6,6 +7,7 @@ class Issue(TypedDict):
     confidence: float
     suggested_fix: str
     category: str
+
 
 class State(TypedDict):
     task: str

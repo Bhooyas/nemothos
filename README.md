@@ -1,6 +1,6 @@
 # Nemothos
 
-![Nemothos](https://socialify.git.ci/Bhooyas/nemothyos/image?font=KoHo&language=1&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Auto)
+![Nemothos](https://socialify.git.ci/Bhooyas/nemothos/image?font=KoHo&language=1&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Auto)
 
 A repository trying to replicate Mythos model type performance using NVIDIA Nemotron Models. The repository aims to find security and performace vulnerabilites in the code and optimize it.
 
@@ -46,4 +46,4 @@ Options:
 
 The defualt model uses `nemotron-3-nano:30b-cloud`. We can also use `nemotron-3-super:cloud` by passing the `--hard` option.
 
-**Note**: Based on our observations using `nemotron-3-nano:30b-cloud` for 3-5 generations works the best.
+**Note**: Based on our observations using `nemotron-3-nano:30b-cloud` for 3-5 generations works the best. Also it works across multiple languages.

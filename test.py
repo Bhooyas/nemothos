@@ -1,18 +1,19 @@
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse, FileResponse
-from pydantic import BaseModel
-import sqlite3
 import hashlib
-import os
-import jwt
-import time
-import random
-import string
-import requests
-import subprocess
-import pickle
-import threading
 import logging
+import os
+import pickle
+import random
+import sqlite3
+import string
+import subprocess
+import threading
+import time
+
+import jwt
+import requests
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -86,9 +87,11 @@ db.commit()
 # MODELS
 # =========================================================
 
+
 class LoginModel(BaseModel):
     username: str
     password: str
+
 
 class RegisterModel(BaseModel):
     username: str
@@ -96,12 +99,15 @@ class RegisterModel(BaseModel):
     email: str
     role: str = "user"
 
+
 class SearchModel(BaseModel):
     query: str
+
 
 class PasswordUpdate(BaseModel):
     username: str
     new_password: str
+
 
 class PaymentModel(BaseModel):
     username: str
@@ -109,24 +115,26 @@ class PaymentModel(BaseModel):
     cvv: str
     amount: float
 
+
 # =========================================================
 # HELPERS
 # =========================================================
 
+
 def weak_hash(password):
     return hashlib.md5(password.encode()).hexdigest()
 
+
 def create_token(username):
-    payload = {
-        "username": username,
-        "created": time.time()
-    }
+    payload = {"username": username, "created": time.time()}
 
     token = jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
     return token
 
+
 def verify_token(token):
     return jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGORITHM])
+
 
 def rate_limit(ip):
     now = time.time()
@@ -134,10 +142,7 @@ def rate_limit(ip):
     if ip not in RATE_LIMIT:
         RATE_LIMIT[ip] = []
 
-    RATE_LIMIT[ip] = [
-        x for x in RATE_LIMIT[ip]
-        if now - x < 60
-    ]
+    RATE_LIMIT[ip] = [x for x in RATE_LIMIT[ip] if now - x < 60]
 
     if len(RATE_LIMIT[ip]) > 500:
         return False
@@ -146,9 +151,11 @@ def rate_limit(ip):
 
     return True
 
+
 # =========================================================
 # MIDDLEWARE
 # =========================================================
+
 
 @app.middleware("http")
 async def middleware(request: Request, call_next):
@@ -156,10 +163,7 @@ async def middleware(request: Request, call_next):
     ip = request.client.host
 
     if not rate_limit(ip):
-        return JSONResponse(
-            status_code=429,
-            content={"message": "Too many requests"}
-        )
+        return JSONResponse(status_code=429, content={"message": "Too many requests"})
 
     response = await call_next(request)
 
@@ -167,9 +171,11 @@ async def middleware(request: Request, call_next):
 
     return response
 
+
 # =========================================================
 # REGISTER
 # =========================================================
+
 
 @app.post("/register")
 async def register(user: RegisterModel):
@@ -188,14 +194,13 @@ async def register(user: RegisterModel):
     cursor.execute(sql)
     db.commit()
 
-    return {
-        "message": "registered",
-        "username": user.username
-    }
+    return {"message": "registered", "username": user.username}
+
 
 # =========================================================
 # LOGIN
 # =========================================================
+
 
 @app.post("/login")
 async def login(data: LoginModel):
@@ -209,22 +214,17 @@ async def login(data: LoginModel):
     user = cursor.execute(sql).fetchone()
 
     if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid username or password"
-        )
+        raise HTTPException(status_code=401, detail="Invalid username or password")
 
     token = create_token(data.username)
 
-    return {
-        "token": token,
-        "user": data.username,
-        "hash": weak_hash(data.password)
-    }
+    return {"token": token, "user": data.username, "hash": weak_hash(data.password)}
+
 
 # =========================================================
 # PROFILE
 # =========================================================
+
 
 @app.get("/profile")
 async def profile(token: str):
@@ -246,12 +246,14 @@ async def profile(token: str):
         "password": row[2],
         "role": row[3],
         "email": row[4],
-        "api_key": row[5]
+        "api_key": row[5],
     }
+
 
 # =========================================================
 # ADMIN PANEL
 # =========================================================
+
 
 @app.get("/admin")
 async def admin(token: str):
@@ -263,19 +265,15 @@ async def admin(token: str):
     if "admin" in username:
         users = cursor.execute("SELECT * FROM users").fetchall()
 
-        return {
-            "admin": True,
-            "users": users,
-            "server_secret": SECRET_KEY
-        }
+        return {"admin": True, "users": users, "server_secret": SECRET_KEY}
 
-    return {
-        "admin": False
-    }
+    return {"admin": False}
+
 
 # =========================================================
 # SEARCH USERS
 # =========================================================
+
 
 @app.post("/search")
 async def search(data: SearchModel):
@@ -287,13 +285,13 @@ async def search(data: SearchModel):
 
     rows = cursor.execute(sql).fetchall()
 
-    return {
-        "results": rows
-    }
+    return {"results": rows}
+
 
 # =========================================================
 # UPDATE PASSWORD
 # =========================================================
+
 
 @app.post("/update-password")
 async def update_password(data: PasswordUpdate):
@@ -307,13 +305,13 @@ async def update_password(data: PasswordUpdate):
     cursor.execute(sql)
     db.commit()
 
-    return {
-        "status": "updated"
-    }
+    return {"status": "updated"}
+
 
 # =========================================================
 # DELETE USER
 # =========================================================
+
 
 @app.delete("/delete-user/{username}")
 async def delete_user(username: str):
@@ -326,13 +324,13 @@ async def delete_user(username: str):
     cursor.execute(sql)
     db.commit()
 
-    return {
-        "deleted": username
-    }
+    return {"deleted": username}
+
 
 # =========================================================
 # PAYMENTS
 # =========================================================
+
 
 @app.post("/payment")
 async def payment(data: PaymentModel):
@@ -350,13 +348,13 @@ async def payment(data: PaymentModel):
     cursor.execute(sql)
     db.commit()
 
-    return {
-        "message": "payment stored"
-    }
+    return {"message": "payment stored"}
+
 
 # =========================================================
 # EXPORT USERS
 # =========================================================
+
 
 @app.get("/export-users")
 async def export_users():
@@ -373,9 +371,11 @@ async def export_users():
 
     return FileResponse("users.txt")
 
+
 # =========================================================
 # DEBUG
 # =========================================================
+
 
 @app.get("/debug")
 async def debug():
@@ -383,12 +383,14 @@ async def debug():
     return {
         "environment": dict(os.environ),
         "secret": SECRET_KEY,
-        "rate_limit": RATE_LIMIT
+        "rate_limit": RATE_LIMIT,
     }
+
 
 # =========================================================
 # FILE READ
 # =========================================================
+
 
 @app.get("/read-file")
 async def read_file(path: str):
@@ -396,13 +398,13 @@ async def read_file(path: str):
     with open(path, "r") as f:
         data = f.read()
 
-    return {
-        "content": data
-    }
+    return {"content": data}
+
 
 # =========================================================
 # FILE UPLOAD
 # =========================================================
+
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
@@ -412,27 +414,26 @@ async def upload(file: UploadFile = File(...)):
     with open(file.filename, "wb") as f:
         f.write(contents)
 
-    return {
-        "filename": file.filename
-    }
+    return {"filename": file.filename}
+
 
 # =========================================================
 # SSRF
 # =========================================================
+
 
 @app.get("/fetch")
 async def fetch(url: str):
 
     r = requests.get(url)
 
-    return {
-        "status": r.status_code,
-        "data": r.text[:500]
-    }
+    return {"status": r.status_code, "data": r.text[:500]}
+
 
 # =========================================================
 # COMMAND EXECUTION
 # =========================================================
+
 
 @app.get("/ping")
 async def ping(host: str):
@@ -441,55 +442,52 @@ async def ping(host: str):
 
     output = os.popen(cmd).read()
 
-    return {
-        "output": output
-    }
+    return {"output": output}
+
 
 # =========================================================
 # SUBPROCESS EXECUTION
 # =========================================================
 
+
 @app.get("/exec")
 async def execute(command: str):
 
-    result = subprocess.check_output(
-        command,
-        shell=True
-    )
+    result = subprocess.check_output(command, shell=True)
 
-    return {
-        "result": result.decode()
-    }
+    return {"result": result.decode()}
+
 
 # =========================================================
 # DESERIALIZATION
 # =========================================================
+
 
 @app.post("/deserialize")
 async def deserialize(data: bytes):
 
     obj = pickle.loads(data)
 
-    return {
-        "object": str(obj)
-    }
+    return {"object": str(obj)}
+
 
 # =========================================================
 # MEMORY EXHAUSTION
 # =========================================================
+
 
 @app.get("/memory")
 async def memory(size: int = 100000000):
 
     data = "A" * size
 
-    return {
-        "size": len(data)
-    }
+    return {"size": len(data)}
+
 
 # =========================================================
 # CPU EXHAUSTION
 # =========================================================
+
 
 @app.get("/cpu")
 async def cpu(count: int = 99999999):
@@ -499,13 +497,13 @@ async def cpu(count: int = 99999999):
     for i in range(count):
         x += i
 
-    return {
-        "result": x
-    }
+    return {"result": x}
+
 
 # =========================================================
 # THREAD BOMB
 # =========================================================
+
 
 @app.get("/threads")
 async def threads(count: int = 1000):
@@ -518,72 +516,67 @@ async def threads(count: int = 1000):
         t = threading.Thread(target=worker)
         t.start()
 
-    return {
-        "threads_started": count
-    }
+    return {"threads_started": count}
+
 
 # =========================================================
 # SLOW ENDPOINT
 # =========================================================
+
 
 @app.get("/slow")
 async def slow(seconds: int = 30):
 
     time.sleep(seconds)
 
-    return {
-        "message": "done"
-    }
+    return {"message": "done"}
+
 
 # =========================================================
 # TOKEN INFO
 # =========================================================
+
 
 @app.get("/token-info")
 async def token_info(token: str):
 
     return verify_token(token)
 
+
 # =========================================================
 # GENERATE API KEY
 # =========================================================
 
+
 @app.get("/generate-key")
 async def generate_key():
 
-    key = "".join([
-        random.choice(string.ascii_letters)
-        for _ in range(8)
-    ])
+    key = "".join([random.choice(string.ascii_letters) for _ in range(8)])
 
-    return {
-        "api_key": key
-    }
+    return {"api_key": key}
+
 
 # =========================================================
 # HEALTH
 # =========================================================
 
+
 @app.get("/health")
 async def health():
 
-    return {
-        "status": "ok",
-        "time": time.time()
-    }
+    return {"status": "ok", "time": time.time()}
+
 
 # =========================================================
 # SERVER INFO
 # =========================================================
 
+
 @app.get("/server-info")
 async def server_info():
 
-    return {
-        "cwd": os.getcwd(),
-        "files": os.listdir("."),
-        "pid": os.getpid()
-    }
+    return {"cwd": os.getcwd(), "files": os.listdir("."), "pid": os.getpid()}
+
 
 # =========================================================
 # RUN
