@@ -1,49 +1,105 @@
-# Nemothos
+# Nemothos - Enhanced Code Optimization
 
 ![Nemothos](https://socialify.git.ci/Bhooyas/nemothos/image?font=KoHo&language=1&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Auto)
 
-A repository trying to replicate Mythos model type performance using NVIDIA Nemotron Models. The repository aims to find security and performace vulnerabilites in the code and optimize it.
+A repository trying to replicate Mythos model type performance using NVIDIA Nemotron Models. The repository aims to find security and performace vulnerabilites in the code and optimize it across entire directories.
 
-## Running the model
+## Installation
 
-The first step would be to clone the project using the following command: -
+### 1. Clone the repository
+
 ```bash
 git clone https://github.com/Bhooyas/nemothos.git
+cd nemothos
 ```
 
-The next step is to install the requirements for the project. We do that using the following command: -
+### 2. Install dependencies
+
+It is recommended to use a virtual environment.
+
 ```bash
-cd nemothos
 pip install -r requirements.txt
 ```
 
-The next would be to install [Ollama](https://ollama.com/) and login into it using following command: -
+### 3. Install Ollama
+
+Download and install Ollama from:
+
+* [https://ollama.com/](https://ollama.com/)
+
+After installation, authenticate using:
+
 ```bash
 ollama signin
 ```
 
-Post this you can pass on any script and run the optimize it. We have provided a [test.py](test.py) on which you can experiment.
+---
+
+## Default Models
+
+Nemothos uses the following models:
+
+| Mode              | Model                       |
+| ----------------- | --------------------------- |
+| Default           | `nemotron-3-nano:30b-cloud` |
+| Hard Optimization | `nemotron-3-super:cloud`    |
+
+Use the `--hard` flag for deeper and more aggressive optimization passes.
+
+---
+
+## Usage
+
+### Optimize a directory
+
+Analyze and optimize all supported code files inside a directory.
+
+```bash
+python main.py --directory ./examples/python_db_app --overwrite true
+```
+
+### Optimize a single file
+
 ```bash
 python main.py --file test.py
 ```
 
-Alternatively you can even ask it to write the code and then optimize it.
-```bash
-python main.py --task "Write fastapi application with sql login and rate limiting"
-```
+### Generate and optimize code from a task
 
-The possible args of the file are:
+```bash
+python main.py --task "Write a FastAPI application with SQL authentication and rate limiting"
+```
+**Note**: Based on our observations using `nemotron-3-nano:30b-cloud` for 3-5 generations works the best. 
+
+---
+
+## Examples
+
+The repository includes example projects inside the [`examples/`](examples) directory.
+
+---
+
+## CLI Options
+
 ```bash
 Options:
-  -m, --max-generation INTEGER  Number of times to run the loop
-  --hard                        Use higher model and optimize harder
-  --reasoning BOOLEAN           Use model with reasoning
-  -f, --file FILE               Path of the file to optimize
-  -t, --task TEXT               Task to write code for
-  --run-id TEXT                 Run id to store details
-  --help                        Show this message and exit.
+  -m, --max-generation INTEGER   Number of optimization generations to run
+  --hard                         Use a larger model for deeper optimization
+  --reasoning BOOLEAN            Enable reasoning-capable models
+  -d, --directory DIRECTORY      Path to the directory to optimize
+  -e, --exclude TEXT             Comma-separated files or folders to exclude
+  -f, --file FILE                Path to the file to optimize
+  -t, --task TEXT                Generate code from a task prompt
+  -o, --overwrite BOOLEAN        Overwrite input files/folders
+                                 Default: false
+  --run-id TEXT                  Custom run identifier for logs and outputs
+  --help                         Show help message and exit
 ```
 
-The defualt model uses `nemotron-3-nano:30b-cloud`. We can also use `nemotron-3-super:cloud` by passing the `--hard` option.
+---
 
-**Note**: Based on our observations using `nemotron-3-nano:30b-cloud` for 3-5 generations works the best. Also it works across multiple languages.
+## Disclaimer
+
+Nemothos is an experimental AI-assisted optimization tool.
+
+Always review and validate generated or modified code before using it in production environments. Automated optimizations may introduce unintended behavioral or security changes.
